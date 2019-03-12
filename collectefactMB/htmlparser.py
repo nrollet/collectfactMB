@@ -19,18 +19,21 @@ def extract_htmltable(html):
     main_dic = {}
 
     for row in rows:
-        if "MARTIN-BROWER FRANCE BEAUVAIS" in row and len(row) == 9:
+        # if "MARTIN-BROWER FRANCE BEAUVAIS" in row and len(row) == 9:
+        if row[0].startswith("MARTIN-BROWER FRANCE") and len(row) == 9:
 
             customer = row[1]
             invoice = row[2]
+            date = ""
+            amount = 0.0
             try:
-                date = datetime.strptime(row[3], "%d/%m/%Y")
+                date = datetime.strptime(row[3], "%m/%d/%Y")
             except ValueError:
-                logging.error("date illisible : {}".format("_".join(row)))
+                logging.error("date illisible : {}\n{}".format(row[3], "_".join(row)))
             try:
                 amount = float(row[4])
             except ValueError:
-                logging.error("montant illisible : {}".format("_".join(row)))
+                logging.error("montant illisible : {}\n{}".format(row[4], "_".join(row)))
             url_pdf = row[6]
             url_edi = row[8]
 
