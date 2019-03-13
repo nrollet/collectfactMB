@@ -1,6 +1,7 @@
 *.py[cod]
 *.json
 dont.py
+log
 
 # C extensions
 *.so

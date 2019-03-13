@@ -1,6 +1,7 @@
 import logging
 import json
 import pprint
+from openpyxl import load_workbook
 from fetchemail import FetchEmail
 from htmlparser import extract_htmltable
 import datetime
@@ -42,14 +43,15 @@ for account in config["ACCOUNTS"].keys():
     for msg in msg_list:
         table = extract_htmltable(msg["body"])
         table_list.append(table)
+
         # parsed = json.loads(table)
         # txt = json.dumps(table, indent=2, sort_keys=True, default=myconverter)
         # with open(account + "_" + msg["num"].decode() + ".json", "w") as f:
         #     f.write(txt)
-txt = json.dumps(table_list, indent=2, sort_keys=True, default=myconverter)        
-with open('toutjson", "w") as f:
-    f.write(txt)
-    print("x-"*20)
+# txt = json.dumps(table_list, indent=2, sort_keys=True, default=myconverter)        
+# with open("toutjson", "w") as f:
+#     f.write(txt)
+#     print("x-"*20)
     mailsrv.close_connection()
 
 
