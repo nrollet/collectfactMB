@@ -26,7 +26,7 @@ if not os.path.isdir("doc"):
 if not os.path.isdir("log"):
     os.mkdir("log")
 
-### LOAD CONFIG ###
+### LOAD GLOBAL PARAMS ###
 with open("config.json", "r") as f:
     config = json.load(f)
 
@@ -45,8 +45,7 @@ except OSError as e:
 ws = wb.active
 ws.append([])
 
-
-table_list = []
+## Main loop ####
 for account in config["ACCOUNTS"].keys():
     logging.info("Accès au compte {}".format(account))
     ID = config["ACCOUNTS"][account]["ID"]
@@ -71,7 +70,6 @@ for account in config["ACCOUNTS"].keys():
 
     for msg in msg_list:
         table = extract_htmltable(msg["body"])
-        table_list.append(table)
 
         for customer in table.keys():
             for invoice in table[customer]:
@@ -84,11 +82,12 @@ for account in config["ACCOUNTS"].keys():
                         table[customer][invoice]["montant"],
                         table[customer][invoice]["date"],
                         table[customer][invoice]["url_pdf"],
-                        table[customer][invoice]["url_edi"],
+                        table[customer][invoice]["url_edi"]
                     ]
                 )
 
                 try:
+                    logging.info(table[customer][invoice]["url_pdf"])
                     r = s.get(table[customer][invoice]["url_pdf"])
                     r.raise_for_status()
                 except requests.exceptions.HTTPError as e:
@@ -104,5 +103,3 @@ for account in config["ACCOUNTS"].keys():
 
 wb.save(XL)
 wb.close()
-
-# MAILSRV = origin["SERVER"]
