@@ -2,7 +2,7 @@
 *.json
 dont.py
 log
-doc
+doc*
 
 # C extensions
 *.so

@@ -4,6 +4,7 @@ import pprint
 import openpyxl
 import requests
 import os
+from time import sleep
 from fetchemail import FetchEmail
 from htmlparser import extract_htmltable
 from datetime import datetime
@@ -54,7 +55,7 @@ for account in config["ACCOUNTS"].keys():
     INBOX = config["ACCOUNTS"][account]["INBOX"]
 
     ### HTTP SESSIONS ###
-    logging.info("opening http session : {}".format(GIS_SRV))
+    logging.info("opening http session")
     s = requests.session()
     html_payload = {"j_username": ID, "j_password": GIS_PWD}
     try:
@@ -75,10 +76,8 @@ for account in config["ACCOUNTS"].keys():
 
     for msg in msg_list:
         table = extract_htmltable(msg["body"])
+        uid = msg["num"].decode()
         for customer in table.keys():
-            logging.info(
-                "msg {} has {} invoices".format(msg["num"], len(table[customer]))
-            )
             for invoice in table[customer]:
                 ws.append(
                     [
@@ -102,7 +101,17 @@ for account in config["ACCOUNTS"].keys():
                 except requests.exceptions.RequestException as e:
                     logging.error(e)
                     continue
-                open("doc/" + invoice + ".pdf", "wb").write(r.content)
+                size = int(len(r.content) / 1000)
+                logging.info(
+                    "-- {} - {}, invoice n°{} ({}kb)".format(
+                        uid, customer, invoice, str(size)
+                    )
+                )
+                # en dessous de 20KB, on considère que le download a échoué
+                if size > 20:
+                    open("doc/" + invoice + ".pdf", "wb").write(r.content)
+                else:
+                    logging.warning("pdf file is too small")
                 # EDI
                 try:
                     r = s.get(table[customer][invoice]["url_edi"])
@@ -115,8 +124,8 @@ for account in config["ACCOUNTS"].keys():
                     continue
                 open("doc/" + invoice + ".edi", "wb").write(r.content)
 
-        mailsrv.archive_message(msg["num"], INBOX + "/archives")
-        
+        # mailsrv.archive_message(msg["num"], INBOX + "/archives")
+
     mailsrv.close_connection()
     s.close()
 

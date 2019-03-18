@@ -197,78 +197,8 @@ class FetchEmail:
         return email.utils.parseaddr(email_address)
 
 
-if __name__ == "__main__":
-
-    import email
-    import pprint
-    import bs4 as BeautifulSoup
-
-    pp = pprint.PrettyPrinter(indent=4)
-
-    logging.basicConfig(
-        level=logging.DEBUG, format="%(module)s \t %(levelname)s -- %(message)s"
-    )
-
-    with open("config.json", "r") as f:
-        config = json.load(f)
-
-    origin = config["mcdosudoise"]
-
-    MAILSRV = origin["SERVER"]
-    ID = origin["ID"]
-    PWD = origin["PWD"]
-    FOLD = origin["INBOX"]
-
-    print(FOLD, ID)
-
-    IMAP = FetchEmail(MAILSRV, ID, PWD, FOLD)
-
-    msg_list = IMAP.fetch_specific_messages("noreply@cegedim.fr", "Martin Brower - Notification de factures PDF")
-    for msg in msg_list:
-        IMAP.archive_message(msg["num"], FOLD+"/archives")
-
-    IMAP.close_connection()
-    # lst = []
-    # sublst = []
-    # i = 0
-    # nl = False
-    # for item in table:
-    #     text = item.get_text()
-    #     if text == "MARTIN-BROWER FRANCE BEAUVAIS":
-    #         if sublst:
-    #              lst.append(sublst)
-    #         sublst= []
-    #     else:
-    #         sublst.append(text)
-            # aa = item.find_all("a")
-            # for a in aa:
-            #     sublst.append(a['href'])
-
-    # i = 1
-    # for z in lst:
-    #     pp.pprint("{}-{}".format(i, z))
-    #     i += 1
 
 
-    #         dic.setdefault(i, [])
-    #         i += 1
-    #     else:
-    #         dic[i].append(item.get_text())
-
-
-    # print(dic)
-        # print(item.get_text())
-        # print("-"*20)
-    # for row in table.findAll("tr"):
-    #     print(row)
-    # print(table)
-    # p = email.parser.Parser()
-    # body = p.parse(msg)
-    # body = msg_list[0][1].get_body()
-    # print(body)
-    # for uid, msg in msg_list :
-    #     IMAP.save_attachment(msg, "./Queue")
-    #     IMAP.archive_message(uid, FOLD+"/archive")
 
     
 
