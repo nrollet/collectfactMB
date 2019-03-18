@@ -54,13 +54,18 @@ for account in config["ACCOUNTS"].keys():
     INBOX = config["ACCOUNTS"][account]["INBOX"]
 
     ### HTTP SESSIONS ###
-    logging.info("opening http session")
+    logging.info("opening http session : {}".format(GIS_SRV))
     s = requests.session()
     html_payload = {"j_username": ID, "j_password": GIS_PWD}
     try:
-        p = s.post(GIS_SRV, data=html_payload)
+        r = s.post(GIS_SRV, data=html_payload)
+        r.raise_for_status()
     except requests.exceptions.RequestException as e:
         logging.error(e)
+        continue
+    # Verif contenu du cookie pour authent.
+    if not r.cookies.get_dict()["decorator"] == "martinbrower":
+        logging.error("Authentication has failed")
         continue
 
     logging.info("opening imap sessions")
@@ -70,8 +75,10 @@ for account in config["ACCOUNTS"].keys():
 
     for msg in msg_list:
         table = extract_htmltable(msg["body"])
-
         for customer in table.keys():
+            logging.info(
+                "msg {} has {} invoices".format(msg["num"], len(table[customer]))
+            )
             for invoice in table[customer]:
                 ws.append(
                     [
@@ -82,12 +89,11 @@ for account in config["ACCOUNTS"].keys():
                         table[customer][invoice]["montant"],
                         table[customer][invoice]["date"],
                         table[customer][invoice]["url_pdf"],
-                        table[customer][invoice]["url_edi"]
+                        table[customer][invoice]["url_edi"],
                     ]
                 )
-
+                # PDF
                 try:
-                    logging.info(table[customer][invoice]["url_pdf"])
                     r = s.get(table[customer][invoice]["url_pdf"])
                     r.raise_for_status()
                 except requests.exceptions.HTTPError as e:
@@ -97,7 +103,20 @@ for account in config["ACCOUNTS"].keys():
                     logging.error(e)
                     continue
                 open("doc/" + invoice + ".pdf", "wb").write(r.content)
+                # EDI
+                try:
+                    r = s.get(table[customer][invoice]["url_edi"])
+                    r.raise_for_status()
+                except requests.exceptions.HTTPError as e:
+                    logging.error(e)
+                    continue
+                except requests.exceptions.RequestException as e:
+                    logging.error(e)
+                    continue
+                open("doc/" + invoice + ".edi", "wb").write(r.content)
 
+        mailsrv.archive_message(msg["num"], INBOX + "/archives")
+        
     mailsrv.close_connection()
     s.close()
 
