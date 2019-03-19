@@ -7,30 +7,31 @@ from fetchemail import FetchEmail
 from htmlparser import extract_htmltable
 from datetime import datetime
 
-
-### CHECK FOLDER ###
-if not os.path.isdir("doc"):
-    os.mkdir("doc")
-if not os.path.isdir("log"):
-    os.mkdir("log")
-
-logging.basicConfig(handlers=[logging.FileHandler("log/trace.log", 'a', 'utf-8')],level=logging.INFO,
-                    format='%(asctime)s -- %(levelname)s -- %(module)s -- %(message)s')
-logging.info("="*40)
-
 ### LOAD GLOBAL PARAMS ###
 with open("config.json", "r") as f:
     config = json.load(f)
-
 GIS_SRV = config["GLOBAL"]["GIS"]
 IMAP = config["GLOBAL"]["IMAP"]
 SENDER = config["GLOBAL"]["SENDER"]
 SUBJECT = config["GLOBAL"]["SUBJECT"]
 XL = config["GLOBAL"]["XLLOGGER"]
+DOCDIR = config["GLOBAL"]["DOCDIR"]
+LOGDIR = config["GLOBAL"]["LOGDIR"]
+
+### CHECK FOLDER ###
+if not os.path.isdir(DOCDIR):
+    os.mkdir(DOCDIR)
+if not os.path.isdir(LOGDIR):
+    os.mkdir(LOGDIR)
+
+logging.basicConfig(handlers=[logging.FileHandler(LOGDIR+"trace.log", 'a', 'utf-8')],level=logging.INFO,
+                    format='%(asctime)s -- %(levelname)s -- %(module)s -- %(message)s')
+logging.info("="*40)
+
 
 ### EXCEL LOGGER ####
 try:
-    wb = load_workbook(filename=XL)
+    wb = load_workbook(filename=LOGDIR+XL)
 except OSError as e:
     logging.error("{}".format(e))
     wb = Workbook()
@@ -99,7 +100,7 @@ for account in config["ACCOUNTS"].keys():
                 )
                 # en dessous de 20KB, on considère que le download a échoué
                 if size > 20:
-                    open("doc/" + invoice + ".pdf", "wb").write(r.content)
+                    open(DOCDIR + invoice + ".pdf", "wb").write(r.content)
                 else:
                     logging.warning("pdf file is too small")
                 # EDI
@@ -112,12 +113,12 @@ for account in config["ACCOUNTS"].keys():
                 except requests.exceptions.RequestException as e:
                     logging.error(e)
                     continue
-                open("doc/" + invoice + ".edi", "wb").write(r.content)
+                open(DOCDIR + invoice + ".edi", "wb").write(r.content)
 
-        mailsrv.archive_message(msg["num"], INBOX + "/archives")
+        # mailsrv.archive_message(msg["num"], INBOX + "/archives")
 
     mailsrv.close_connection()
     s.close()
 
-wb.save(XL)
+wb.save(LOGDIR+XL)
 wb.close()
