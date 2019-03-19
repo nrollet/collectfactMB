@@ -1,24 +1,11 @@
 import logging
 import json
-import pprint
-import openpyxl
 import requests
 import os
-from time import sleep
+from openpyxl import Workbook, load_workbook
 from fetchemail import FetchEmail
 from htmlparser import extract_htmltable
 from datetime import datetime
-
-
-logging.basicConfig(
-    level=logging.INFO, format="%(levelname)s \t %(module)s -- %(message)s"
-)
-pp = pprint.PrettyPrinter(indent=4)
-
-
-def myconverter(o):
-    if isinstance(o, datetime.datetime):
-        return o.__str__()
 
 
 ### CHECK FOLDER ###
@@ -26,6 +13,10 @@ if not os.path.isdir("doc"):
     os.mkdir("doc")
 if not os.path.isdir("log"):
     os.mkdir("log")
+
+logging.basicConfig(handlers=[logging.FileHandler("log/trace.log", 'a', 'utf-8')],level=logging.INFO,
+                    format='%(asctime)s -- %(levelname)s -- %(module)s -- %(message)s')
+logging.info("="*40)
 
 ### LOAD GLOBAL PARAMS ###
 with open("config.json", "r") as f:
@@ -39,12 +30,11 @@ XL = config["GLOBAL"]["XLLOGGER"]
 
 ### EXCEL LOGGER ####
 try:
-    wb = openpyxl.load_workbook(filename=XL)
+    wb = load_workbook(filename=XL)
 except OSError as e:
     logging.error("{}".format(e))
-    wb = openpyxl.Workbook()
+    wb = Workbook()
 ws = wb.active
-ws.append([])
 
 ## Main loop ####
 for account in config["ACCOUNTS"].keys():
@@ -124,7 +114,7 @@ for account in config["ACCOUNTS"].keys():
                     continue
                 open("doc/" + invoice + ".edi", "wb").write(r.content)
 
-        # mailsrv.archive_message(msg["num"], INBOX + "/archives")
+        mailsrv.archive_message(msg["num"], INBOX + "/archives")
 
     mailsrv.close_connection()
     s.close()

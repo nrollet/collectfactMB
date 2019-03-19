@@ -5,11 +5,13 @@ collectefactMB
     :target: https://pypi.python.org/pypi/collectefactMB
     :alt: Latest PyPI version
 
-.. image:: https://travis-ci.org/borntyping/cookiecutter-pypackage-minimal.png
-   :target: https://travis-ci.org/borntyping/cookiecutter-pypackage-minimal
-   :alt: Latest Travis CI build status
-
-An opinionated, minimal cookiecutter template for Python packages
+Tools to collecte invoice pdf from a website.
+Document URL are sent by email and the website require authentication.
+Steps :
+1. Download email from imap server
+2. Parse html content to retrieve document URL
+3. Handle website authentication
+4. Download documents
 
 Usage
 -----
